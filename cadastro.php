@@ -5,15 +5,11 @@ $erro = "";
 $nome = "";
 $email = "";
 $tipo = "usuario";
-$setor = "";
-$matricula = "";
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $nome = trim($_POST['nome'] ?? '');
     $email = trim($_POST['email'] ?? '');
     $tipo = $_POST['tipo'] ?? 'usuario';
-    $setor = trim($_POST['setor'] ?? '');
-    $matricula = trim($_POST['matricula'] ?? '');
     $senha = $_POST['senha'] ?? '';
     $confirmar_senha = $_POST['confirmar_senha'] ?? '';
 
@@ -27,10 +23,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $erro = "Informe um e-mail válido.";
     } elseif ($senha !== $confirmar_senha) {
         $erro = "As senhas não coincidem.";
-    } elseif ($tipo === 'funcionario' && ($setor === '' || $matricula === '')) {
-        $erro = "Funcionários precisam informar setor e matrícula.";
-    } elseif ($tipo === 'funcionario' && !isset(setoresBiblioteca()[$setor])) {
-        $erro = "Selecione um setor da biblioteca.";
     } else {
         try {
             $stmt = $pdo->prepare("SELECT id FROM usuarios WHERE email = ?");
@@ -40,22 +32,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $erro = "Este e-mail já está cadastrado.";
             } else {
                 $senha_hash = password_hash($senha, PASSWORD_DEFAULT);
-                $setorSalvo = $tipo === 'funcionario' ? $setor : null;
-                $matriculaSalva = $tipo === 'funcionario' ? $matricula : null;
 
                 $stmt = $pdo->prepare(
-                    "INSERT INTO usuarios (nome, email, senha, tipo, setor, matricula)
-                     VALUES (?, ?, ?, ?, ?, ?)"
+                    "INSERT INTO usuarios (nome, email, senha, tipo)
+                     VALUES (?, ?, ?, ?)"
                 );
 
-                $stmt->execute([
-                    $nome,
-                    $email,
-                    $senha_hash,
-                    $tipo,
-                    $setorSalvo,
-                    $matriculaSalva
-                ]);
+                $stmt->execute([$nome, $email, $senha_hash, $tipo]);
 
                 header("Location: login.php?cadastro=sucesso");
                 exit;
@@ -72,7 +55,7 @@ require "header.php";
 <section class="formulario">
 
     <h1>Crie sua conta</h1>
-    <p>Leitores adquirem livros. Funcionários cadastram o acervo.</p>
+    <p>Leitores pesquisam, emprestam e compram. Funcionários cadastram os livros.</p>
 
     <?php if ($erro): ?>
         <p class="erro"><?= proteger($erro); ?></p>
@@ -98,20 +81,6 @@ require "header.php";
         <input type="email" id="email" name="email" placeholder="seu@email.com"
             value="<?= proteger($email); ?>" required>
 
-        <div id="campos-equipe" <?= $tipo === 'funcionario' ? '' : 'hidden'; ?>>
-            <label for="setor">Setor</label>
-            <select id="setor" name="setor">
-                <option value="" <?= $setor === '' ? 'selected' : ''; ?> disabled>
-                    Selecione o setor da biblioteca...
-                </option>
-                <?= opcoesSetor($setor); ?>
-            </select>
-
-            <label for="matricula">Matrícula</label>
-            <input type="text" id="matricula" name="matricula" placeholder="Ex: 12345"
-                value="<?= proteger($matricula); ?>">
-        </div>
-
         <label for="senha">Senha</label>
         <input type="password" id="senha" name="senha" placeholder="Crie uma senha" required>
 
@@ -127,20 +96,5 @@ require "header.php";
     </p>
 
 </section>
-
-<script>
-(function () {
-    var tipo = document.getElementById('tipo');
-    var extra = document.getElementById('campos-equipe');
-    if (!tipo || !extra) return;
-
-    function atualizar() {
-        extra.hidden = tipo.value !== 'funcionario';
-    }
-
-    tipo.addEventListener('change', atualizar);
-    atualizar();
-})();
-</script>
 
 <?php require "footer.php"; ?>

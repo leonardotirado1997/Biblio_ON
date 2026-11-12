@@ -30,26 +30,52 @@ function exigirAdmin() {
     }
 }
 
-function setoresBiblioteca() {
+function enderecoRetirada() {
+    return 'Avenida Rocha Pombo, 3028';
+}
+
+function formatarData($data) {
+    $data = substr((string) $data, 0, 10);
+    $dt = DateTime::createFromFormat('Y-m-d', $data);
+
+    return $dt ? $dt->format('d/m/Y') : '';
+}
+
+function limitesEmprestimo() {
     return [
-        'acervo' => 'Acervo',
-        'catalogacao' => 'Catalogação',
-        'atendimento' => 'Atendimento ao leitor',
-        'referencia' => 'Referência e pesquisa',
-        'administrativo' => 'Administração da biblioteca',
+        'min' => (new DateTime('tomorrow'))->format('Y-m-d'),
+        'max' => (new DateTime('+30 days'))->format('Y-m-d'),
     ];
 }
 
-function opcoesSetor($atual = '') {
-    $html = '';
+function validarDataDevolucao($data) {
+    $limites = limitesEmprestimo();
+    $dt = DateTime::createFromFormat('Y-m-d', (string) $data);
 
-    foreach (setoresBiblioteca() as $valor => $rotulo) {
-        $selected = ((string) $atual === (string) $valor) ? ' selected' : '';
-        $html .= '<option value="' . proteger($valor) . '"' . $selected . '>'
-            . proteger($rotulo) . '</option>';
+    if (!$dt || $dt->format('Y-m-d') !== $data) {
+        return 'Informe a data em que o livro volta a ficar disponível.';
     }
 
-    return $html;
+    if ($data < $limites['min'] || $data > $limites['max']) {
+        return 'Escolha uma data entre amanhã e os próximos 30 dias.';
+    }
+
+    return null;
+}
+
+function emprestimoAtivo($livroId) {
+    global $pdo;
+
+    $stmt = $pdo->prepare(
+        "SELECT data_fim FROM pedidos
+         WHERE livro_id = ? AND tipo = 'emprestimo' AND data_fim > CURDATE()
+         ORDER BY data_fim ASC
+         LIMIT 1"
+    );
+    $stmt->execute([$livroId]);
+    $emprestimo = $stmt->fetch();
+
+    return $emprestimo['data_fim'] ?? null;
 }
 
 function arquivoCapa($imagem) {

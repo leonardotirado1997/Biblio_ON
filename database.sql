@@ -4,16 +4,13 @@ COLLATE utf8mb4_unicode_ci;
 
 USE bibli_on;
 
--- tipo: usuario apenas adquire livros; funcionario e admin cadastram o acervo.
--- setor do funcionario: acervo, catalogacao, atendimento, referencia, administrativo.
+-- tipo: usuario pesquisa, empresta e compra; funcionario e admin cadastram o acervo.
 CREATE TABLE usuarios (
     id INT AUTO_INCREMENT PRIMARY KEY,
     nome VARCHAR(100) NOT NULL,
     email VARCHAR(150) NOT NULL UNIQUE,
     senha VARCHAR(255) NOT NULL,
     tipo ENUM('usuario', 'funcionario', 'admin') NOT NULL DEFAULT 'usuario',
-    setor VARCHAR(80) NULL,
-    matricula VARCHAR(40) NULL,
     criado_em TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
@@ -28,12 +25,17 @@ CREATE TABLE livros (
     criado_em TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
+-- emprestimo: data_fim é o dia em que o exemplar volta a ficar disponível.
+-- compra: não bloqueia o exemplar da estante. Retirada presencial no endereço da biblioteca.
 CREATE TABLE pedidos (
     id INT AUTO_INCREMENT PRIMARY KEY,
     usuario_id INT NOT NULL,
     livro_id INT NOT NULL,
+    tipo ENUM('emprestimo', 'compra') NOT NULL DEFAULT 'compra',
     data_pedido TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    status VARCHAR(30) DEFAULT 'Confirmado',
+    data_fim DATE NULL,
+    retirada VARCHAR(180) NULL,
+    status VARCHAR(40) DEFAULT 'Confirmado',
     FOREIGN KEY (usuario_id) REFERENCES usuarios(id),
     FOREIGN KEY (livro_id) REFERENCES livros(id)
 );

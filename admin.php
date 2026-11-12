@@ -62,9 +62,22 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $id = filter_input(INPUT_POST, 'id', FILTER_VALIDATE_INT);
 
             if ($id) {
+                $disponivelEm = emprestimoAtivo($id);
+
+                if ($disponivelEm) {
+                    throw new Exception(
+                        "Este exemplar está emprestado e volta a ficar disponível em "
+                        . formatarData($disponivelEm)
+                        . ". A exclusão fica liberada depois dessa data."
+                    );
+                }
+
                 $stmt = $pdo->prepare("SELECT imagem FROM livros WHERE id = ?");
                 $stmt->execute([$id]);
                 $livroAtual = $stmt->fetch();
+
+                $stmt = $pdo->prepare("DELETE FROM pedidos WHERE livro_id = ?");
+                $stmt->execute([$id]);
 
                 $stmt = $pdo->prepare("DELETE FROM livros WHERE id = ?");
                 $stmt->execute([$id]);
@@ -200,7 +213,16 @@ if (isset($_GET['editar'])) {
     }
 }
 
-$livros = $pdo->query("SELECT * FROM livros ORDER BY id DESC")->fetchAll();
+$livros = $pdo->query(
+    "SELECT livros.*, (
+        SELECT MIN(p.data_fim) FROM pedidos p
+        WHERE p.livro_id = livros.id
+          AND p.tipo = 'emprestimo'
+          AND p.data_fim > CURDATE()
+    ) AS disponivel_em
+    FROM livros
+    ORDER BY livros.id DESC"
+)->fetchAll();
 
 $livroForm = $editar ?: [
     'id' => '',
@@ -218,7 +240,7 @@ require "header.php";
 <section class="admin">
 
     <h1>Cadastro de livros</h1>
-    <p>Funcionários e administradores cadastram o acervo, com capa. Leitores só adquirem os livros.</p>
+    <p class="intro">Inclua a obra com a capa. Enquanto houver empréstimo ativo, o exemplar não pode ser excluído.</p>
 
     <?php if ($mensagem): ?>
         <p class="sucesso"><?= proteger($mensagem); ?></p>
@@ -287,6 +309,7 @@ require "header.php";
                     <th>Autor</th>
                     <th>Categoria</th>
                     <th>Preço</th>
+                    <th>Empréstimo</th>
                     <th>Ações</th>
                 </tr>
             </thead>
@@ -308,6 +331,13 @@ require "header.php";
                         <td data-label="Autor"><?= proteger($livro['autor']); ?></td>
                         <td data-label="Categoria"><?= proteger($livro['categoria']); ?></td>
                         <td data-label="Preço">R$ <?= number_format($livro['preco'], 2, ',', '.'); ?></td>
+                        <td data-label="Empréstimo">
+                            <?php if (!empty($livro['disponivel_em'])): ?>
+                                Disponível em <?= proteger(formatarData($livro['disponivel_em'])); ?>
+                            <?php else: ?>
+                                Disponível
+                            <?php endif; ?>
+                        </td>
 
                         <td data-label="Ações">
                             <div class="acoes">

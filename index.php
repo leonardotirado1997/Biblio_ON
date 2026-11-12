@@ -4,7 +4,14 @@ require_once "funcoes.php";
 $pesquisa = trim($_GET['pesquisa'] ?? '');
 $categoria = trim($_GET['categoria'] ?? '');
 
-$sql = "SELECT * FROM livros WHERE 1=1";
+$sql = "SELECT livros.*, (
+            SELECT MIN(p.data_fim) FROM pedidos p
+            WHERE p.livro_id = livros.id
+              AND p.tipo = 'emprestimo'
+              AND p.data_fim > CURDATE()
+        ) AS disponivel_em
+        FROM livros
+        WHERE 1=1";
 $params = [];
 
 if ($pesquisa !== '') {
@@ -35,10 +42,25 @@ require "header.php";
 
 <section class="banner">
     <div>
-        <h1>Encontre sua próxima leitura!</h1>
-        <p>Explore histórias, descubra autores e encontre livros incríveis.</p>
+        <h1>Descubra e leve seu próximo livro</h1>
+        <p>Pesquise o catálogo, consulte os detalhes de cada obra e escolha: emprestar o exemplar ou comprar.</p>
         <a href="#catalogo" class="botao">Explorar livros</a>
     </div>
+</section>
+
+<section class="passos">
+    <article>
+        <h3>Explore</h3>
+        <p>Busque por título, autor ou categoria e abra a ficha do livro.</p>
+    </article>
+    <article>
+        <h3>Empreste ou compre</h3>
+        <p>O empréstimo tem data para o exemplar voltar ao catálogo. A compra não tira o livro da estante.</p>
+    </article>
+    <article>
+        <h3>Retire no endereço</h3>
+        <p>A retirada é presencial, em <?= proteger(enderecoRetirada()); ?>.</p>
+    </article>
 </section>
 
 <section class="busca">
@@ -82,6 +104,12 @@ require "header.php";
                     <?php endif; ?>
 
                     <div class="card-conteudo">
+                        <?php if (!empty($livro['disponivel_em'])): ?>
+                            <span class="selo-status emprestado">Emprestado</span>
+                        <?php else: ?>
+                            <span class="selo-status disponivel">Disponível</span>
+                        <?php endif; ?>
+
                         <h3><?= proteger($livro['titulo']); ?></h3>
 
                         <p>Autor: <?= proteger($livro['autor']); ?></p>
@@ -90,12 +118,16 @@ require "header.php";
                             <?= proteger($livro['categoria']); ?>
                         </p>
 
+                        <?php if (!empty($livro['disponivel_em'])): ?>
+                            <p class="categoria">Volta em <?= proteger(formatarData($livro['disponivel_em'])); ?></p>
+                        <?php endif; ?>
+
                         <p class="preco">
                             R$ <?= number_format($livro['preco'], 2, ',', '.'); ?>
                         </p>
 
                         <a href="livro.php?id=<?= $livro['id']; ?>" class="botao">
-                            Ver detalhes
+                            Ver livro
                         </a>
                     </div>
 

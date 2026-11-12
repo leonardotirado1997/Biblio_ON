@@ -24,8 +24,11 @@ require_once __DIR__ . "/funcoes.php";
 
     <nav>
         <a href="index.php">Início</a>
+        <a href="index.php#catalogo">Catálogo</a>
 
         <?php if (usuarioLogado()): ?>
+
+            <a href="meus-pedidos.php">Meus pedidos</a>
 
             <?php if (podeCadastrarLivros()): ?>
                 <a href="admin.php">Cadastrar livros</a>
