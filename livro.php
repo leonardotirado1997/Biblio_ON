@@ -23,9 +23,10 @@ require "header.php";
 
 <section class="detalhes-livro">
 
-    <?php if (!empty($livro['imagem'])): ?>
+    <?php $capa = urlCapa($livro['imagem'] ?? ''); ?>
+    <?php if ($capa): ?>
         <img
-            src="imagens/<?= proteger(basename($livro['imagem'])); ?>"
+            src="<?= proteger($capa); ?>"
             alt="<?= proteger($livro['titulo']); ?>"
         >
     <?php else: ?>
@@ -48,10 +49,13 @@ require "header.php";
         <?php if (usuarioLogado()): ?>
             <form action="pedido.php" method="POST">
                 <input type="hidden" name="livro_id" value="<?= $livro['id']; ?>">
-                <button type="submit" class="botao">Confirmar pedido</button>
+                <button type="submit" class="botao">Adquirir livro</button>
             </form>
+            <?php if (podeCadastrarLivros()): ?>
+                <a href="admin.php?editar=<?= $livro['id']; ?>" class="botao-secundario">Editar cadastro</a>
+            <?php endif; ?>
         <?php else: ?>
-            <a href="login.php" class="botao">Entre para pedir este livro</a>
+            <a href="login.php" class="botao">Entre para adquirir este livro</a>
         <?php endif; ?>
 
     </div>

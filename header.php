@@ -10,6 +10,7 @@ require_once __DIR__ . "/funcoes.php";
 
     <title>Bibli-ON | Sua biblioteca online</title>
 
+    <link rel="icon" href="assets/foto%201.png">
     <link rel="stylesheet" href="assets/style.css">
 </head>
 
@@ -18,7 +19,7 @@ require_once __DIR__ . "/funcoes.php";
 <header class="topo">
 
     <a href="index.php" class="logo">
-        Bibli-<span>ON</span>
+        <img src="assets/foto%201.png" alt="Biblioteca Online">
     </a>
 
     <nav>
@@ -26,12 +27,15 @@ require_once __DIR__ . "/funcoes.php";
 
         <?php if (usuarioLogado()): ?>
 
-            <?php if (($_SESSION['tipo'] ?? '') === 'admin'): ?>
-                <a href="admin.php">Painel administrativo</a>
+            <?php if (podeCadastrarLivros()): ?>
+                <a href="admin.php">Cadastrar livros</a>
             <?php endif; ?>
 
             <span class="usuario">
                 Olá, <?= proteger($_SESSION['nome']); ?>
+                <?php if (podeCadastrarLivros()): ?>
+                    <small class="selo"><?= ($_SESSION['tipo'] ?? '') === 'admin' ? 'Administrador' : 'Funcionário'; ?></small>
+                <?php endif; ?>
             </span>
 
             <a href="logout.php">Sair</a>

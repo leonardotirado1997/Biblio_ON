@@ -62,8 +62,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $id = filter_input(INPUT_POST, 'id', FILTER_VALIDATE_INT);
 
             if ($id) {
+                $stmt = $pdo->prepare("SELECT imagem FROM livros WHERE id = ?");
+                $stmt->execute([$id]);
+                $livroAtual = $stmt->fetch();
+
                 $stmt = $pdo->prepare("DELETE FROM livros WHERE id = ?");
                 $stmt->execute([$id]);
+
+                if ($livroAtual && !empty($livroAtual['imagem'])) {
+                    $caminho = __DIR__ . "/imagens/" . basename($livroAtual['imagem']);
+                    if (is_file($caminho)) {
+                        unlink($caminho);
+                    }
+                }
+
                 $mensagem = "Livro excluído com sucesso!";
             }
 
@@ -92,6 +104,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
                 if ($imagem) {
 
+                    $stmt = $pdo->prepare("SELECT imagem FROM livros WHERE id = ?");
+                    $stmt->execute([$id]);
+                    $livroAtual = $stmt->fetch();
+
                     $stmt = $pdo->prepare(
                         "UPDATE livros
                          SET titulo=?, autor=?, descricao=?,
@@ -108,6 +124,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         $imagem,
                         $id
                     ]);
+
+                    if ($livroAtual && !empty($livroAtual['imagem']) && $livroAtual['imagem'] !== $imagem) {
+                        $caminho = __DIR__ . "/imagens/" . basename($livroAtual['imagem']);
+                        if (is_file($caminho)) {
+                            unlink($caminho);
+                        }
+                    }
 
                 } else {
 
@@ -132,6 +155,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
             } else {
 
+                if (!$imagem) {
+                    throw new Exception("Envie a capa do livro (JPG, PNG ou WEBP).");
+                }
+
                 $stmt = $pdo->prepare(
                     "INSERT INTO livros
                      (titulo, autor, descricao, categoria, preco, imagem)
@@ -151,7 +178,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             }
         }
 
-    } catch (Throwable $e) {
+    } catch (PDOException $e) {
+        $erro = ($acao ?? '') === 'excluir'
+            ? "Não foi possível excluir. Um livro já adquirido permanece no acervo."
+            : "Não foi possível salvar o livro.";
+    } catch (Exception $e) {
         $erro = $e->getMessage();
     }
 }
@@ -171,13 +202,23 @@ if (isset($_GET['editar'])) {
 
 $livros = $pdo->query("SELECT * FROM livros ORDER BY id DESC")->fetchAll();
 
+$livroForm = $editar ?: [
+    'id' => '',
+    'titulo' => '',
+    'autor' => '',
+    'descricao' => '',
+    'categoria' => '',
+    'preco' => '0.00',
+    'imagem' => '',
+];
+
 require "header.php";
 ?>
 
 <section class="admin">
 
-    <h1>Painel administrativo</h1>
-    <p>Gerencie os livros disponíveis no Bibli-ON.</p>
+    <h1>Cadastro de livros</h1>
+    <p>Funcionários e administradores cadastram o acervo, com capa. Leitores só adquirem os livros.</p>
 
     <?php if ($mensagem): ?>
         <p class="sucesso"><?= proteger($mensagem); ?></p>
@@ -195,26 +236,31 @@ require "header.php";
 
             <input type="hidden" name="acao" value="salvar">
 
-            <input type="hidden" name="id" value="<?= proteger($editar['id'] ?? ''); ?>">
+            <input type="hidden" name="id" value="<?= proteger($livroForm['id']); ?>">
 
             <label>Título</label>
-            <input type="text" name="titulo" value="<?= proteger($editar['titulo'] ?? ''); ?>" required>
+            <input type="text" name="titulo" value="<?= proteger($livroForm['titulo']); ?>" required>
 
             <label>Autor</label>
-            <input type="text" name="autor" value="<?= proteger($editar['autor'] ?? ''); ?>" required>
+            <input type="text" name="autor" value="<?= proteger($livroForm['autor']); ?>" required>
 
             <label>Descrição</label>
-            <textarea name="descricao"><?= proteger($editar['descricao'] ?? ''); ?></textarea>
+            <textarea name="descricao"><?= proteger($livroForm['descricao']); ?></textarea>
 
             <label>Categoria</label>
-            <input type="text" name="categoria" value="<?= proteger($editar['categoria'] ?? ''); ?>" required>
+            <input type="text" name="categoria" value="<?= proteger($livroForm['categoria']); ?>" required>
 
             <label>Preço</label>
-            <input type="number" name="preco" step="0.01" min="0" value="<?= proteger($editar['preco'] ?? '0.00'); ?>"
+            <input type="number" name="preco" step="0.01" min="0" value="<?= proteger($livroForm['preco']); ?>"
                 required>
 
             <label>Capa do livro</label>
-            <input type="file" name="imagem" accept="image/jpeg,image/png,image/webp">
+            <?php $capaAtual = urlCapa($livroForm['imagem']); ?>
+            <?php if ($capaAtual): ?>
+                <img class="capa-preview" src="<?= proteger($capaAtual); ?>" alt="Capa atual de <?= proteger($livroForm['titulo']); ?>">
+            <?php endif; ?>
+            <input type="file" name="imagem" accept="image/jpeg,image/png,image/webp" <?= $editar ? '' : 'required'; ?>>
+            <p class="ajuda">JPG, PNG ou WEBP, com no máximo 3 MB.<?= $editar ? ' Envie outra imagem apenas se quiser trocar a capa.' : ''; ?></p>
 
             <button type="submit" class="botao">
                 <?= $editar ? 'Salvar alterações' : 'Cadastrar livro'; ?>
@@ -236,7 +282,7 @@ require "header.php";
 
             <thead>
                 <tr>
-                    <th>ID</th>
+                    <th>Capa</th>
                     <th>Título</th>
                     <th>Autor</th>
                     <th>Categoria</th>
@@ -250,28 +296,37 @@ require "header.php";
                 <?php foreach ($livros as $livro): ?>
 
                     <tr>
-                        <td><?= $livro['id']; ?></td>
-                        <td><?= proteger($livro['titulo']); ?></td>
-                        <td><?= proteger($livro['autor']); ?></td>
-                        <td><?= proteger($livro['categoria']); ?></td>
-                        <td>R$ <?= number_format($livro['preco'], 2, ',', '.'); ?></td>
+                        <td data-label="Capa">
+                            <?php $capa = urlCapa($livro['imagem'] ?? ''); ?>
+                            <?php if ($capa): ?>
+                                <img class="capa-mini" src="<?= proteger($capa); ?>" alt="">
+                            <?php else: ?>
+                                <span class="sem-capa">Sem capa</span>
+                            <?php endif; ?>
+                        </td>
+                        <td data-label="Título"><?= proteger($livro['titulo']); ?></td>
+                        <td data-label="Autor"><?= proteger($livro['autor']); ?></td>
+                        <td data-label="Categoria"><?= proteger($livro['categoria']); ?></td>
+                        <td data-label="Preço">R$ <?= number_format($livro['preco'], 2, ',', '.'); ?></td>
 
-                        <td>
-                            <a href="admin.php?editar=<?= $livro['id']; ?>">
-                                Editar
-                            </a>
+                        <td data-label="Ações">
+                            <div class="acoes">
+                                <a href="admin.php?editar=<?= $livro['id']; ?>">
+                                    Editar
+                                </a>
 
-                            <form method="POST" class="form-excluir"
-                                onsubmit="return confirm('Deseja excluir este livro?');">
+                                <form method="POST" class="form-excluir"
+                                    onsubmit="return confirm('Deseja excluir este livro?');">
 
-                                <input type="hidden" name="acao" value="excluir">
-                                <input type="hidden" name="id" value="<?= $livro['id']; ?>">
+                                    <input type="hidden" name="acao" value="excluir">
+                                    <input type="hidden" name="id" value="<?= $livro['id']; ?>">
 
-                                <button type="submit" class="excluir">
-                                    Excluir
-                                </button>
+                                    <button type="submit" class="excluir">
+                                        Excluir
+                                    </button>
 
-                            </form>
+                                </form>
+                            </div>
                         </td>
                     </tr>
 

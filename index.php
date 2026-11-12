@@ -74,8 +74,9 @@ require "header.php";
 
                 <article class="card-livro">
 
-                    <?php if (!empty($livro['imagem'])): ?>
-                        <img src="imagens/<?= proteger(basename($livro['imagem'])); ?>" alt="<?= proteger($livro['titulo']); ?>">
+                    <?php $capa = urlCapa($livro['imagem'] ?? ''); ?>
+                    <?php if ($capa): ?>
+                        <img src="<?= proteger($capa); ?>" alt="<?= proteger($livro['titulo']); ?>">
                     <?php else: ?>
                         <div class="sem-imagem">Sem capa</div>
                     <?php endif; ?>

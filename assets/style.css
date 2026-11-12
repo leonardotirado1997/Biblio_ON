@@ -8,55 +8,109 @@ body {
     font-family: Arial, Helvetica, sans-serif;
     background: #fffdf5;
     color: #292929;
-    
-    /* ALTERAÇÕES PARA EMPURRAR O RODAPÉ PARA BAIXO */
     display: flex;
     flex-direction: column;
     min-height: 100vh;
+    overflow-x: hidden;
+}
+
+img {
+    max-width: 100%;
+}
+
+a:focus-visible,
+button:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible {
+    outline: 2px solid #ddab21;
+    outline-offset: 2px;
 }
 
 /* MENU SUPERIOR */
 .topo {
     width: 100%;
-    min-height: 65px;
-    background: #ffffff;
-    padding: 12px 7%;
+    min-height: 76px;
+    background: #000;
+    padding: 8px 5%;
     display: flex;
     align-items: center;
     justify-content: space-between;
-    box-shadow: 0 2px 10px rgba(134, 71, 19, 0.849);
+    gap: 16px;
+    position: sticky;
+    top: 0;
+    z-index: 20;
+    border-bottom: 3px solid #f0cc62;
 }
 
 .logo {
-    font-size: 26px;
-    font-weight: bold;
-    color: #222;
+    display: flex;
+    align-items: center;
+    flex: 0 1 auto;
+    min-width: 0;
+    line-height: 0;
     text-decoration: none;
 }
 
-.logo span {
-    color: #f8d878;
+.logo img {
+    display: block;
+    height: 112px;
+    width: auto;
+    max-width: min(340px, 42vw);
+    object-fit: contain;
+    object-position: left center;
 }
 
 nav {
     display: flex;
     align-items: center;
-    gap: 22px;
+    justify-content: flex-end;
+    flex-wrap: wrap;
+    gap: 10px 18px;
+    min-width: 0;
 }
 
 nav a {
     text-decoration: none;
-    color: #333;
+    color: #f7f7f7;
     font-weight: bold;
     font-size: 14px;
 }
 
 nav a:hover {
-    color: #f0cc62; /* Corrigido o # */
+    color: #f0cc62;
+}
+
+nav a.botao-menu {
+    background: #f8d878;
+    color: #1a1a1a;
+    padding: 10px 16px;
+}
+
+nav a.botao-menu:hover {
+    background: #ffe493;
+    color: #1a1a1a;
 }
 
 .usuario {
-    color: #666;
+    color: #f0f0f0;
+    font-size: 14px;
+    max-width: 220px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.selo {
+    display: inline-block;
+    margin-left: 6px;
+    background: #f8d878;
+    color: #1a1a1a;
+    border-radius: 999px;
+    padding: 2px 8px;
+    font-size: 11px;
+    font-weight: bold;
+    vertical-align: middle;
 }
 
 /* CONTEÚDO PRINCIPAL */
@@ -145,7 +199,8 @@ textarea {
 select {
     background-color: #ffffff;
     cursor: pointer;
-    appearance: none; /* Remove a setinha padrão */
+    padding-right: 40px;
+    appearance: none;
     -webkit-appearance: none;
     -moz-appearance: none;
     /* Cria uma setinha customizada */
@@ -253,6 +308,30 @@ select {
     margin-bottom: 20px;
 }
 
+.formulario .erro {
+    color: #b91c1c;
+}
+
+.formulario .sucesso {
+    color: #166534;
+}
+
+.formulario .ajuda {
+    margin-top: -6px;
+    margin-bottom: 14px;
+    font-size: 13px;
+}
+
+.formulario .link-conta {
+    margin-top: 16px;
+    text-align: center;
+}
+
+.formulario .link-conta a {
+    color: #9a7000;
+    font-weight: bold;
+}
+
 .formulario label {
     display: block;
     font-weight: bold;
@@ -349,6 +428,37 @@ select {
 
 .form-excluir {
     display: inline;
+    margin: 0;
+}
+
+.acoes {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    align-items: center;
+}
+
+.capa-preview {
+    display: block;
+    width: 120px;
+    height: 168px;
+    object-fit: contain;
+    background: #f5f5f5;
+    border-radius: 8px;
+    margin: 4px 0 10px;
+}
+
+.capa-mini {
+    width: 42px;
+    height: 58px;
+    object-fit: cover;
+    border-radius: 4px;
+    background: #f5f5f5;
+}
+
+.sem-capa {
+    color: #777;
+    font-size: 13px;
 }
 
 .excluir {
@@ -377,40 +487,138 @@ select {
 }
 
 /* RESPONSIVIDADE */
-@media (max-width: 800px) {
+@media (max-width: 980px) {
+    .logo img {
+        height: 88px;
+        max-width: min(260px, 40vw);
+    }
+
     .livros {
         grid-template-columns: repeat(2, minmax(0, 1fr));
     }
 
     .busca form {
-        grid-template-columns: 1fr;
+        grid-template-columns: 1fr 1fr;
+    }
+
+    .busca .botao {
+        grid-column: 1 / -1;
+    }
+
+    .detalhes-livro {
+        gap: 24px;
+        padding: 20px;
     }
 }
 
-@media (max-width: 550px) {
+@media (max-width: 720px) {
     .topo {
         flex-direction: column;
-        gap: 15px;
+        align-items: stretch;
+        padding: 10px 16px 14px;
+        gap: 8px;
     }
 
-    nav {
-        flex-wrap: wrap;
+    .logo {
         justify-content: center;
     }
 
-    .livros {
+    .logo img {
+        height: 92px;
+        max-width: min(320px, 88vw);
+        object-position: center;
+    }
+
+    nav {
+        width: 100%;
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 8px;
+    }
+
+    nav a,
+    nav .usuario {
+        text-align: center;
+        padding: 10px 8px;
+        border-radius: 8px;
+        background: #161616;
+    }
+
+    nav .usuario {
+        grid-column: 1 / -1;
+        max-width: none;
+        white-space: normal;
+        background: transparent;
+        padding: 2px 8px 0;
+    }
+
+    .busca form,
+    .livros,
+    .detalhes-livro {
         grid-template-columns: 1fr;
     }
 
     .banner {
-        padding: 40px 25px;
+        padding: 28px 18px;
     }
 
     .banner h1 {
-        font-size: 28px;
+        font-size: 26px;
+        line-height: 1.25;
     }
 
-    .detalhes-livro {
-        grid-template-columns: 1fr;
+    .formulario {
+        margin: 16px auto;
+        padding: 20px 16px;
+    }
+
+    .card-livro img,
+    .sem-imagem {
+        height: 220px;
+    }
+
+    .admin-form {
+        max-width: 100%;
+    }
+
+    .botao,
+    .botao-menu,
+    button {
+        min-height: 44px;
+    }
+
+    .tabela thead {
+        display: none;
+    }
+
+    .tabela,
+    .tabela tbody,
+    .tabela tr,
+    .tabela td {
+        display: block;
+        width: 100%;
+    }
+
+    .tabela tr {
+        background: white;
+        border-radius: 12px;
+        margin-bottom: 14px;
+        padding: 8px 12px;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+    }
+
+    .tabela td {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 12px;
+        border: none;
+        padding: 10px 4px;
+    }
+
+    .tabela td::before {
+        content: attr(data-label);
+        font-weight: bold;
+        color: #555;
     }
 }

@@ -1,52 +1,56 @@
 <?php
-// Inicia a sessão se ainda não estiver iniciada
-if (session_status() === PHP_SESSION_NONE) {
-    session_start();
-}
-
 require_once "funcoes.php";
 
 $erro = "";
+$email = "";
+$perfil = "usuario";
+$setor = "";
+$matricula = "";
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $email = trim($_POST['email'] ?? '');
     $senha = $_POST['senha'] ?? '';
+    $perfil = $_POST['perfil'] ?? 'usuario';
     $setor = trim($_POST['setor'] ?? '');
     $matricula = trim($_POST['matricula'] ?? '');
 
-    if (empty($email) || empty($senha) || empty($setor) || empty($matricula)) {
-        $erro = "Preencha todos os campos obrigatórios.";
+    if (!in_array($perfil, ['usuario', 'funcionario'], true)) {
+        $perfil = 'usuario';
+    }
+
+    if ($email === '' || $senha === '') {
+        $erro = "Preencha e-mail e senha.";
     } else {
         try {
-            // Busca o usuário pelo E-mail
             $stmt = $pdo->prepare("SELECT * FROM usuarios WHERE email = ?");
             $stmt->execute([$email]);
             $usuario = $stmt->fetch();
 
-            // Verifica se achou o usuário, se a senha bate, o setor e a matrícula conferem
             if ($usuario && password_verify($senha, $usuario['senha'])) {
-                
-                // Verifica se o setor e a matrícula digitados são iguais aos do banco
-                if ($usuario['setor'] === $setor && $usuario['matricula'] === $matricula) {
-                    
+                $tipo = $usuario['tipo'] ?? 'usuario';
+                $ehEquipe = in_array($tipo, ['funcionario', 'admin'], true);
+
+                if ($ehEquipe && ($setor === '' || $matricula === '')) {
+                    $erro = "Contas de funcionário precisam informar setor e matrícula.";
+                    $perfil = 'funcionario';
+                } elseif ($ehEquipe && ($usuario['setor'] !== $setor || $usuario['matricula'] !== $matricula)) {
+                    $erro = "O setor ou a matrícula não conferem com o cadastro.";
+                    $perfil = 'funcionario';
+                } else {
                     session_regenerate_id(true);
 
                     $_SESSION['usuario_id'] = $usuario['id'];
                     $_SESSION['nome'] = $usuario['nome'];
+                    $_SESSION['tipo'] = $tipo;
 
-                    // Redireciona para a página inicial
-                    header("Location: index.php");
+                    header("Location: " . ($ehEquipe ? "admin.php" : "index.php"));
                     exit;
-
-                } else {
-                    $erro = "O Setor ou a Matrícula não conferem com o cadastro.";
                 }
-
             } else {
                 $erro = "E-mail ou senha incorretos.";
             }
         } catch (PDOException $e) {
-            $erro = "Erro no Banco de Dados: " . $e->getMessage();
+            $erro = "Não foi possível entrar. Tente novamente.";
         }
     }
 }
@@ -57,7 +61,7 @@ require "header.php";
 <section class="formulario">
 
     <h1>Bem-vindo ao Bibli-ON!</h1>
-    <p>Entre na sua conta para continuar.</p>
+    <p>Leitores entram para adquirir livros. Funcionários também informam setor e matrícula.</p>
 
     <?php if (isset($_GET['cadastro'])): ?>
         <p class="sucesso">Cadastro realizado! Faça seu login.</p>
@@ -69,33 +73,59 @@ require "header.php";
 
     <form method="POST" action="login.php">
 
-        <label for="email">E-mail corporativo</label>
-        <input type="email" id="email" name="email" placeholder="nome@empresa.com" required>
+        <label for="perfil">Entrar como</label>
+        <select id="perfil" name="perfil" required>
+            <option value="usuario" <?= $perfil !== 'funcionario' ? 'selected' : ''; ?>>
+                Leitor
+            </option>
+            <option value="funcionario" <?= $perfil === 'funcionario' ? 'selected' : ''; ?>>
+                Funcionário da biblioteca
+            </option>
+        </select>
+
+        <label for="email">E-mail</label>
+        <input type="email" id="email" name="email" placeholder="seu@email.com"
+            value="<?= proteger($email); ?>" required>
 
         <label for="senha">Senha</label>
         <input type="password" id="senha" name="senha" placeholder="Digite sua senha" required>
 
-        <!-- AQUI ESTÃO OS CAMPOS QUE VOCÊ QUERIA MANTER -->
-        <label for="setor">Setor</label>
-        <select id="setor" name="setor" required>
-            <option value="" disabled selected>Selecione o seu setor...</option>
-            <option value="administrativo">Administrativo</option>
-            <option value="rh">Recursos Humanos</option>
-            <option value="ti">TI / Tecnologia</option>
-            <option value="vendas">Vendas</option>
-            <option value="estoque">Estoque</option>
-        </select>
+        <div id="campos-equipe" <?= $perfil === 'funcionario' ? '' : 'hidden'; ?>>
+            <label for="setor">Setor</label>
+            <select id="setor" name="setor">
+                <option value="" <?= $setor === '' ? 'selected' : ''; ?> disabled>
+                    Selecione o setor da biblioteca...
+                </option>
+                <?= opcoesSetor($setor); ?>
+            </select>
 
-        <label for="matricula">Matrícula do Funcionário</label>
-        <input type="text" id="matricula" name="matricula" placeholder="Ex: 12345" required>
+            <label for="matricula">Matrícula</label>
+            <input type="text" id="matricula" name="matricula" placeholder="Ex: 12345"
+                value="<?= proteger($matricula); ?>">
+        </div>
 
         <button type="submit" class="botao">Entrar</button>
     </form>
 
-    <p style="margin-top: 15px; text-align: center; font-size: 14px;">
-        Não possui uma conta? <a href="cadastro.php" style="color: #9a7000; font-weight: bold;">Cadastre-se</a>
+    <p class="link-conta">
+        Não possui uma conta? <a href="cadastro.php">Cadastre-se</a>
     </p>
 
 </section>
+
+<script>
+(function () {
+    var perfil = document.getElementById('perfil');
+    var extra = document.getElementById('campos-equipe');
+    if (!perfil || !extra) return;
+
+    function atualizar() {
+        extra.hidden = perfil.value !== 'funcionario';
+    }
+
+    perfil.addEventListener('change', atualizar);
+    atualizar();
+})();
+</script>
 
 <?php require "footer.php"; ?>

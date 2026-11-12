@@ -24,8 +24,8 @@ if (!$stmt->fetch()) {
 }
 
 $pedido = $pdo->prepare(
-    "INSERT INTO pedidos (usuario_id, livro_id)
-     VALUES (?, ?)"
+    "INSERT INTO pedidos (usuario_id, livro_id, status)
+     VALUES (?, ?, 'Adquirido')"
 );
 
 $pedido->execute([$_SESSION['usuario_id'], $livroId]);
@@ -35,9 +35,9 @@ require "header.php";
 
 <section class="formulario">
 
-    <h1>Pedido confirmado!</h1>
+    <h1>Livro adquirido!</h1>
 
-    <p>Seu pedido foi registrado com sucesso no Bibli-ON.</p>
+    <p>O livro foi registrado na sua conta do Bibli-ON.</p>
 
     <p>Esta é uma demonstração acadêmica. Nenhum pagamento foi realizado.</p>
 

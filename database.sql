@@ -4,12 +4,16 @@ COLLATE utf8mb4_unicode_ci;
 
 USE bibli_on;
 
+-- tipo: usuario apenas adquire livros; funcionario e admin cadastram o acervo.
+-- setor do funcionario: acervo, catalogacao, atendimento, referencia, administrativo.
 CREATE TABLE usuarios (
     id INT AUTO_INCREMENT PRIMARY KEY,
     nome VARCHAR(100) NOT NULL,
     email VARCHAR(150) NOT NULL UNIQUE,
     senha VARCHAR(255) NOT NULL,
-    tipo ENUM('usuario', 'admin') DEFAULT 'usuario',
+    tipo ENUM('usuario', 'funcionario', 'admin') NOT NULL DEFAULT 'usuario',
+    setor VARCHAR(80) NULL,
+    matricula VARCHAR(40) NULL,
     criado_em TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
