@@ -1,0 +1,416 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: Arial, Helvetica, sans-serif;
+    background: #fffdf5;
+    color: #292929;
+    
+    /* ALTERAÇÕES PARA EMPURRAR O RODAPÉ PARA BAIXO */
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+}
+
+/* MENU SUPERIOR */
+.topo {
+    width: 100%;
+    min-height: 65px;
+    background: #ffffff;
+    padding: 12px 7%;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    box-shadow: 0 2px 10px rgba(134, 71, 19, 0.849);
+}
+
+.logo {
+    font-size: 26px;
+    font-weight: bold;
+    color: #222;
+    text-decoration: none;
+}
+
+.logo span {
+    color: #f8d878;
+}
+
+nav {
+    display: flex;
+    align-items: center;
+    gap: 22px;
+}
+
+nav a {
+    text-decoration: none;
+    color: #333;
+    font-weight: bold;
+    font-size: 14px;
+}
+
+nav a:hover {
+    color: #f0cc62; /* Corrigido o # */
+}
+
+.usuario {
+    color: #666;
+}
+
+/* CONTEÚDO PRINCIPAL */
+main.container {
+    width: min(1180px, 92%);
+    margin: 0 auto;
+    padding: 1px 0 5px;
+    
+    /* FAZ O CONTEÚDO CRESCER E EMPURRAR O RODAPÉ */
+    flex: 1; 
+}
+
+/* BANNER */
+.banner {
+    background: #ffe493;
+    padding: 65px 7%;
+    border-radius: 14px;
+    margin-bottom: 40px;
+}
+
+.banner h1 {
+    font-size: 36px;
+    color: #6b451c;
+    margin-bottom: 12px;
+}
+
+.banner p {
+    font-size: 17px;
+    color: #76521f;
+    margin-bottom: 22px;
+}
+
+/* BOTÕES */
+.botao,
+.botao-menu {
+    display: inline-block;
+    background: #222;
+    color: white;
+    padding: 12px 20px;
+    border: none;
+    border-radius: 7px;
+    text-decoration: none;
+    cursor: pointer;
+    font-weight: bold;
+    font-size: 14px;
+}
+
+.botao:hover,
+.botao-menu:hover {
+    background: #444;
+    color: white;
+}
+
+/* PESQUISA */
+.busca {
+    margin-bottom: 40px;
+}
+
+.busca h2,
+.catalogo h2 {
+    color: #333;
+    font-size: 23px;
+    margin-bottom: 20px;
+}
+
+.busca form {
+    display: grid;
+    grid-template-columns: 2fr 1fr auto;
+    gap: 12px;
+    align-items: center;
+}
+
+/* CAMPOS DE FORMULÁRIO */
+input,
+select,
+textarea {
+    width: 100%;
+    padding: 12px;
+    border: 1px solid #ddd;
+    border-radius: 7px;
+    font-size: 15px;
+    margin: 8px 0 15px;
+}
+
+/* ESTILO ESPECÍFICO PARA O CAMPO DE SETOR (SELECT) */
+select {
+    background-color: #ffffff;
+    cursor: pointer;
+    appearance: none; /* Remove a setinha padrão */
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    /* Cria uma setinha customizada */
+    background-image: url("data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%23333%22%20d%3D%22M287%2069.4a17.6%2017.6%200%200%200-13-5.4H18.4c-5%200-9.3%201.8-12.9%205.4A17.6%2017.6%200%200%200%200%2082.2c0%205%201.8%209.3%205.4%2012.9l128%20127.9c3.6%203.6%207.8%205.4%2012.8%205.4s9.2-1.8%2012.8-5.4L287%2095c3.5-3.5%205.4-7.8%205.4-12.8%200-5-1.9-9.2-5.5-12.8z%22%2F%3E%3C%2Fsvg%3E");
+    background-repeat: no-repeat;
+    background-position: right 15px top 50%;
+    background-size: 12px auto;
+}
+
+.busca input,
+.busca select {
+    margin: 0;
+    min-width: 0;
+}
+
+.busca .botao {
+    white-space: nowrap;
+}
+
+/* CATÁLOGO */
+.catalogo {
+    margin-top: 35px;
+}
+
+.livros {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 25px;
+}
+
+.card-livro {
+    background: white;
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 3px 12px rgba(0,0,0,0.08);
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.card-livro:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 7px 18px rgba(0,0,0,0.12);
+}
+
+.card-livro img {
+    display: block;
+    width: 100%;
+    height: 280px;
+    object-fit: contain;
+    background: #f5f5f5;
+    padding: 15px;
+}
+
+.sem-imagem {
+    height: 280px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #f1f1f1;
+    color: #777;
+}
+
+.card-conteudo {
+    padding: 20px;
+}
+
+.card-conteudo h3 {
+    margin-bottom: 12px;
+    font-size: 18px;
+}
+
+.card-conteudo p {
+    margin-bottom: 10px;
+    font-size: 14px;
+}
+
+.categoria {
+    color: #777;
+}
+
+.preco {
+    color: #ddab21;
+    font-weight: bold;
+    margin: 15px 0;
+}
+
+/* FORMULÁRIOS */
+.formulario {
+    max-width: 480px;
+    margin: 30px auto;
+    padding: 30px;
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 3px 15px rgba(0,0,0,0.08);
+}
+
+.formulario h1,
+.formulario h2 {
+    margin-bottom: 10px; /* Reduzido um pouco para dar espaço ao subtítulo */
+}
+
+/* Texto de apoio do formulário (ex: "Cadastre-se para...") */
+.formulario p {
+    font-size: 14px;
+    color: #666;
+    margin-bottom: 20px;
+}
+
+.formulario label {
+    display: block;
+    font-weight: bold;
+}
+
+.formulario .botao {
+    width: 100%;
+    margin-top: 10px;
+}
+
+.erro {
+    color: #b91c1c;
+    background: #fee2e2;
+    padding: 12px;
+    border-radius: 7px;
+    margin: 15px 0;
+}
+
+.sucesso {
+    color: #166534;
+    background: #dcfce7;
+    padding: 12px;
+    border-radius: 7px;
+    margin: 15px 0;
+}
+
+/* DETALHES DO LIVRO */
+.detalhes-livro {
+    display: grid;
+    grid-template-columns: minmax(200px, 350px) 1fr;
+    gap: 40px;
+    align-items: start;
+    background: white;
+    padding: 30px;
+    border-radius: 12px;
+}
+
+.detalhes-livro img {
+    width: 100%;
+    max-height: 450px;
+    object-fit: contain;
+}
+
+.detalhes-livro h1 {
+    margin-bottom: 20px;
+}
+
+.detalhes-livro p {
+    margin-bottom: 15px;
+    line-height: 1.6;
+}
+
+/* ADMINISTRAÇÃO */
+.admin h1,
+.admin h2 {
+    margin-bottom: 15px;
+}
+
+.admin-form {
+    margin: 25px 0 40px;
+    max-width: 650px;
+}
+
+.admin-form textarea {
+    min-height: 100px;
+    resize: vertical;
+}
+
+.tabela-container {
+    overflow-x: auto;
+}
+
+.tabela {
+    width: 100%;
+    border-collapse: collapse;
+    background: white;
+}
+
+.tabela th,
+.tabela td {
+    padding: 14px;
+    border-bottom: 1px solid #ddd;
+    text-align: left;
+}
+
+.tabela th {
+    background: #facc15;
+}
+
+.tabela a {
+    color: #9a7000;
+    font-weight: bold;
+}
+
+.form-excluir {
+    display: inline;
+}
+
+.excluir {
+    border: none;
+    background: #dc2626;
+    color: white;
+    padding: 7px 10px;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+.botao-secundario {
+    display: inline-block;
+    margin-top: 10px;
+    color: #333;
+}
+
+/* RODAPÉ */
+.rodape {
+    background: #222;
+    color: white;
+    text-align: center;
+    padding: 30px 15px;
+    line-height: 1.8;
+    margin-top: 50px; /* Margem para afastar o rodapé do conteúdo */
+}
+
+/* RESPONSIVIDADE */
+@media (max-width: 800px) {
+    .livros {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .busca form {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 550px) {
+    .topo {
+        flex-direction: column;
+        gap: 15px;
+    }
+
+    nav {
+        flex-wrap: wrap;
+        justify-content: center;
+    }
+
+    .livros {
+        grid-template-columns: 1fr;
+    }
+
+    .banner {
+        padding: 40px 25px;
+    }
+
+    .banner h1 {
+        font-size: 28px;
+    }
+
+    .detalhes-livro {
+        grid-template-columns: 1fr;
+    }
+}
